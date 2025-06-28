@@ -1,0 +1,23 @@
+
+[1;32m===[ Build Configuration ]===[0m
+[1;33m➔[0m NDK Path: [1;34m/data/data/com.termux/files/home/ndk/android-ndk-r28b[0m
+[1;33m➔[0m Target ABI: [1;34marm64-v8a[0m
+[1;33m➔[0m API Level: [1;34m35[0m
+[1;33m➔[0m Build Type: [1;34mRelease[0m
+[1;33m➔[0m Build Directory: [1;34mbuild[0m
+[1;33m➔[0m Output Directory: [1;34moutput[0m
+[1;33m➔[0m Thread Count: [1;34m8[0m
+[1;33m➔[0m Verbose: [1;34mNo[0m
+
+[1;32m===[ CMake Configuration ]===[0m
+[1;33m➔[0m Executing CMake command:
+  [1;34mcmake -DCMAKE_TOOLCHAIN_FILE=/data/data/com.termux/files/home/ndk/android-ndk-r28b/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-35 -DCMAKE_BUILD_TYPE=Release -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=output -G Ninja -B build[0m
+-- Configuring done (0.3s)
+-- Generating done (0.1s)
+-- Build files have been written to: /sdcard/build/imgui-android-example/build
+[1;32m✓[0m CMake configuration successful!
+
+[1;32m===[ Building Project ]===[0m
+[1;33m➔[0m Building with [1;34m8[0m threads...
+[1/14] Building CXX object CMakeFiles/YourAndroidProject.dir/Input.cpp.o
+ninja: build stopped: interrupted by user.

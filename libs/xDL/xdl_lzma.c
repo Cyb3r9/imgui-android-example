@@ -33,7 +33,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <xdl.h>
+#include "xdl.h"
 #include "xdl_util.h"
 
 // LZMA library pathname & symbol names
