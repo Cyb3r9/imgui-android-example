@@ -26,7 +26,7 @@ void DrawMenu()
     if (!menuOpen.load())
         return;
 
-    if (ImGui::Begin("IMGUI"), nullptr, ImGuiWindowFlags_NoSavedSettings) {
+    if (ImGui::Begin("Fuby"), ImGuiWindowFlags_NoSavedSettings) {
 
         if (ImGui::BeginTabBar("MainTabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
 
