@@ -1,7 +1,7 @@
-#include "ImGuiSetup.h"
-#include "init.h"
-#include "log.h"
-#include "UI.h"
+#include "imguisetup.h"
+#include "utils/init.h"
+#include "utils/log.h"
+#include "menu.h"
 #include "fonts/maple.h"
 #include "imgui/imgui.h"
 #include "imgui/backends/imgui_impl_android.h"
@@ -72,7 +72,7 @@ void InitImGui(ANativeWindow *window, EGLDisplay display, EGLSurface surface)
     style.WindowRounding = 12.0f;
     style.GrabMinSize = 20.0f;
 
-    ImGui::StyleColorsLight();
+    // ImGui::StyleColorsLight();
 
     // Load custom font
     if (MapleMonoNormalNL_NF_ExtraBold_ttf_len > 0)

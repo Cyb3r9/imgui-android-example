@@ -1,6 +1,6 @@
-#include "Input.h"
-#include "log.h"
-#include "imgui/backends/imgui_impl_android.h"
+#include "input.h"
+#include "../utils/log.h"
+#include "../imgui/backends/imgui_impl_android.h"
 
 #include <android/input.h>
 #include <android/native_activity.h>

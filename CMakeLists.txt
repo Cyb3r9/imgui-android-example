@@ -29,6 +29,8 @@ if(ANDROID)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 endif()
 
+# add_subdirectory(BNM EXCLUDE_FROM_ALL)
+
 # Include directories
 include_directories(
     imgui
@@ -43,12 +45,12 @@ include_directories(
 # Source files
 set(SOURCES
     main.cpp
-    init.cpp
-    Hooks.cpp
-    ImGuiSetup.cpp
-    ImGuiSetup.h
-    Input.cpp
-    UI.cpp
+    utils/init.cpp
+    hook/hooks.cpp
+    hook/input.cpp
+    imguisetup.cpp
+    imguisetup.h
+    menu.cpp
 )
 
 # ImGui sources
@@ -61,7 +63,6 @@ set(IMGUI_SOURCES
     imgui/backends/imgui_impl_android.cpp
     imgui/backends/imgui_impl_opengl3.cpp
 )
-
 # Add shared library for Android
 add_library(${PROJECT_NAME} SHARED
     # sources
@@ -73,7 +74,8 @@ add_library(${PROJECT_NAME} SHARED
     libs/xDL/xdl_lzma.c
     libs/xDL/xdl_util.c
     # imgui
-    ${IMGUI_SOURCES})
+    ${IMGUI_SOURCES}
+)
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME}
@@ -84,6 +86,7 @@ target_link_libraries(${PROJECT_NAME}
     
     # Android specific libraries
     atomic
+    # BNM
     log
     android
     EGL

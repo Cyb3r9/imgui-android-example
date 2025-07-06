@@ -1,9 +1,9 @@
-#include "Hooks.h"
-#include "ImGuiSetup.h"
-#include "Input.h"
-#include "init.h"
-#include "log.h"
-#include "time.h"
+#include "hooks.h"
+#include "input.h"
+#include "../imguisetup.h"
+#include "../utils/init.h"
+#include "../utils/log.h"
+#include "../utils/time.h"
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
 #include <chrono>
