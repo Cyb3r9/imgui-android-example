@@ -6,7 +6,7 @@
 ## ✨
 
 - 🔧 Hook to OpenGL ES 3 via `eglSwapBuffers`
-- 🔍 Direct touch input from `libinput.so` [This](https://github.com/fedes1to/Zygisk-ImGui-Menu/blob/main/module/src/main/cpp/hook.cpp)
+- 🔍 Direct touch input from `libinput.so`
 - 🧩 Hooking support via [Dobby](https://github.com/jmpews/Dobby) dan [xDL](https://github.com/hexhacking/xDL)
 
 ## 🧰
