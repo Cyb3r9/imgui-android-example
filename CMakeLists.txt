@@ -41,6 +41,7 @@ include_directories(
     libs/arm64-v8a/curl/include
     libs/arm64-v8a/dobby/include
     libs/arm64-v8a/openssl/include
+    ${CMAKE_SOURCE_DIR}
 )
 
 # add_subdirectory(bnm EXCLUDE_FROM_ALL)
@@ -49,12 +50,12 @@ include_directories(
 # Source files
 set(SOURCES
     main.cpp
+    imguisetup.cpp
+    imguisetup.h
     utils/init.cpp
     hook/hooks.cpp
     hook/input.cpp
-    imguisetup.cpp
-    imguisetup.h
-    menu.cpp
+    menu/menu.cpp
 )
 
 # ImGui sources
