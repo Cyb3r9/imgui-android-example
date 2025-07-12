@@ -1,3 +1,4 @@
+#pragma once
 #include <cstddef>
 
 unsigned int MapleMonoNormalNL_NF_ExtraBold_ttf_len = 2278992;

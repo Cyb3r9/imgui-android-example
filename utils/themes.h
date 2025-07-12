@@ -1,4 +1,4 @@
-#include "../imgui/imgui.h"
+#include "imgui/imgui.h"
 
 // Shared style settings
 static float menuTransparency = 0.95f;

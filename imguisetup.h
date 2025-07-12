@@ -1,4 +1,3 @@
-// ImGuiSetup.h
 #pragma once
 
 #include <EGL/egl.h>

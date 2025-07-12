@@ -1,4 +1,3 @@
-// UI.cpp
 #include "menu.h"
 #include "utils/themes.h"
 #include "hook/input.h"

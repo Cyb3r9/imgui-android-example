@@ -1,6 +1,6 @@
 #include "hook/hooks.h"
 #include "utils/log.h"
-#include "utils/utils.h" // IsLibraryLoaded
+#include "utils/utils.h"
 #include <dobby.h>
 #include <pthread.h>
 #include <unistd.h>

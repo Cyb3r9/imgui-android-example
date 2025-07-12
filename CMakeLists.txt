@@ -41,7 +41,12 @@ include_directories(
     libs/arm64-v8a/curl/include
     libs/arm64-v8a/dobby/include
     libs/arm64-v8a/openssl/include
-    ${CMAKE_SOURCE_DIR}
+    # stuff
+    ${PROJECT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}/fonts
+    ${PROJECT_SOURCE_DIR}/menu
+    ${PROJECT_SOURCE_DIR}/hook
+    ${PROJECT_SOURCE_DIR}/utils
 )
 
 # add_subdirectory(bnm EXCLUDE_FROM_ALL)
