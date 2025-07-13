@@ -83,7 +83,12 @@ set(KITTY_SOURCES
     libs/KittyMemory/MemoryBackup.cpp
     libs/KittyMemory/MemoryPatch.cpp
 )
+# Custom flag Keystone
+option(USE_KEYSTONE "Use Keystone Engine in KittyMemory" OFF)
 
+if(NOT USE_KEYSTONE)
+    add_definitions(-DkNO_KEYSTONE)
+endif()
 # Add shared library for Android
 add_library(${PROJECT_NAME} SHARED
     ${SOURCES}
