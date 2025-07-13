@@ -7,19 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-// Global UI state (can be moved to struct/settings later)
 
-    /*
-
-        ImGui::Text("Hello from ImGui on Android!");
-
-        static bool myCheckbox = false;
-        ImGui::Checkbox("checkbox", &myCheckbox);
-
-        static float mySlider = 0.5f;
-        ImGui::SliderFloat("slider", &mySlider, 0.1f, 5.0f);
-    */
-    
 void DrawMenu()
 {
     if (!menuOpen.load())
@@ -61,7 +49,6 @@ void DrawMenu()
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("About")) {
-                ImGui::Text("Input Source: %s", hasReceivedTouchFromQueue ? "AInputQueue" : "InputConsumer");
                 ImGui::Text("Fuby");
                 ImGui::Text("Test");
                 

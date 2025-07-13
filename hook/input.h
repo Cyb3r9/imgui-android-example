@@ -2,5 +2,6 @@
 #define INPUT_H
 
 void InitInputHooks();
-extern bool hasReceivedTouchFromQueue;
+void MarkImGuiReady();
+
 #endif // INPUT_H

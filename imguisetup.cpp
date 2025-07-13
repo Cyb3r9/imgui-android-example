@@ -6,6 +6,7 @@
 #include "menu/menu.h"
 #include "utils/init.h"
 #include "utils/log.h"
+#include "hook/input.h"
 
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
@@ -91,6 +92,7 @@ void InitImGui(ANativeWindow *window, EGLDisplay display, EGLSurface surface)
 
     g_ImGuiInitialized.store(true);
     LOGI("ImGui initialized successfully");
+    MarkImGuiReady();
 }
 
 void RenderImGui()
