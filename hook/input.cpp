@@ -1,6 +1,6 @@
 #include "input.h"
-#include "../imgui/backends/imgui_impl_android.h"
-#include "../utils/log.h"
+#include "imgui/backends/imgui_impl_android.h"
+#include "utils/log.h"
 
 #include <android/input.h>
 #include <android/native_activity.h>
@@ -14,6 +14,23 @@ enum class ABIType {
 };
 
 static ABIType detectedABI = ABIType::UNKNOWN;
+static bool inputQueueHooked = false;
+static bool hasReceivedTouchFromQueue = false;
+static bool isImGuiReady = false;
+
+void MarkImGuiReady() {
+    isImGuiReady = true;
+    LOGI("ImGui is now marked as ready to receive input");
+}
+
+enum class GameInputBackend {
+    UNKNOWN,
+    UNITY,
+    UNREAL,
+    NATIVE
+};
+
+static GameInputBackend backend = GameInputBackend::UNKNOWN;
 
 static void DetectABI() {
 #if defined(__aarch64__)
@@ -40,30 +57,17 @@ const char* GetConsumeSymbolForABI() {
     }
 }
 
-// External from your resolver (make sure you have it in your project)
+// External symbol resolver
 extern void *ResolveSymbol(const char *lib, const char *sym);
 
 using AInputQueue_getEvent_t = int (*)(AInputQueue *, AInputEvent **);
 static AInputQueue_getEvent_t orig_AInputQueue_getEvent = nullptr;
 
-using ConsumeFn = int32_t (*)(void *thiz, void *factory, bool can_block, long timeoutMillis, uint32_t *out_seq,
-                              AInputEvent **out_event);
+using ConsumeFn = int32_t (*)(void *thiz, void *factory, bool can_block, long timeoutMillis, uint32_t *out_seq, AInputEvent **out_event);
 static ConsumeFn origConsume = nullptr;
 
 using InitMotionEventFn = void (*)(void *motionEvent, const void *inputMessage);
 static InitMotionEventFn origInitializeMotion = nullptr;
-
-static bool inputQueueHooked = false;
-bool hasReceivedTouchFromQueue = false;
-
-enum class GameInputBackend {
-    UNKNOWN,
-    UNITY,
-    UNREAL,
-    NATIVE
-};
-
-static GameInputBackend backend = GameInputBackend::UNKNOWN;
 
 static void DetectGameBackend() {
     if (dlopen("libunity.so", RTLD_NOW | RTLD_NOLOAD)) {
@@ -83,21 +87,26 @@ int my_AInputQueue_getEvent(AInputQueue *queue, AInputEvent **outEvent) {
     int result = orig_AInputQueue_getEvent(queue, outEvent);
     if (result >= 0 && outEvent && *outEvent) {
         hasReceivedTouchFromQueue = true;
-        ImGui_ImplAndroid_HandleInputEvent(*outEvent);
+        if (isImGuiReady) {
+            ImGui_ImplAndroid_HandleInputEvent(*outEvent);
+        } else {
+            LOGV("[Input] Ignored input event (ImGui not ready)");
+        }
     }
     return result;
 }
 
 // === Hooked consume ===
-int32_t myConsume(void *thiz, void *factory, bool can_block, long timeoutMillis, uint32_t *out_seq,
-                  AInputEvent **out_event) {
+int32_t myConsume(void *thiz, void *factory, bool can_block, long timeoutMillis, uint32_t *out_seq, AInputEvent **out_event) {
     int32_t result = origConsume(thiz, factory, can_block, timeoutMillis, out_seq, out_event);
-
     if ((!hasReceivedTouchFromQueue || !inputQueueHooked) && result == 0 && out_event && *out_event) {
-        ImGui_ImplAndroid_HandleInputEvent(*out_event);
-        LOGI("[Input] Touch handled via InputConsumer::consume");
+        if (isImGuiReady) {
+            ImGui_ImplAndroid_HandleInputEvent(*out_event);
+            LOGI("[Input] Touch handled via InputConsumer::consume");
+        } else {
+            LOGV("[Input] Ignored input from consume (ImGui not ready)");
+        }
     }
-
     return result;
 }
 
@@ -107,7 +116,7 @@ void myInitializeMotionEvent(void *motionEvent, const void *inputMessage) {
     origInitializeMotion(motionEvent, inputMessage);
 }
 
-// === Init All ===
+// === Init All Hooks ===
 void InitInputHooks() {
     DetectABI();
     DetectGameBackend();
@@ -125,9 +134,8 @@ void InitInputHooks() {
         LOGW("Symbol AInputQueue_getEvent not found");
     }
 
-    // --- Hook InputConsumer::initializeMotionEvent (optional) ---
-    void *sym_init = ResolveSymbol(
-        "libinput.so", "_ZN7android13InputConsumer21initializeMotionEventEPNS_11MotionEventEPKNS_12InputMessageE");
+    // --- Hook InputConsumer::initializeMotionEvent ---
+    void *sym_init = ResolveSymbol("libinput.so", "_ZN7android13InputConsumer21initializeMotionEventEPNS_11MotionEventEPKNS_12InputMessageE");
     if (sym_init) {
         if (DobbyHook(sym_init, (void *)myInitializeMotionEvent, (void **)&origInitializeMotion) == 0) {
             LOGI("Successfully hooked InputConsumer::initializeMotionEvent");
@@ -138,7 +146,7 @@ void InitInputHooks() {
         LOGW("Symbol InputConsumer::initializeMotionEvent not found");
     }
 
-    // --- Hook InputConsumer::consume (ABI-detect) ---
+    // --- Hook InputConsumer::consume (ABI-dependent) ---
     const char *consumeSym = GetConsumeSymbolForABI();
     if (consumeSym) {
         void *sym_consume = ResolveSymbol("libinput.so", consumeSym);

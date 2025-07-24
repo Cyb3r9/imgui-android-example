@@ -41,6 +41,12 @@ include_directories(
     libs/arm64-v8a/curl/include
     libs/arm64-v8a/dobby/include
     libs/arm64-v8a/openssl/include
+    # stuff
+    ${PROJECT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}/fonts
+    ${PROJECT_SOURCE_DIR}/menu
+    ${PROJECT_SOURCE_DIR}/hook
+    ${PROJECT_SOURCE_DIR}/utils
 )
 
 # add_subdirectory(bnm EXCLUDE_FROM_ALL)
@@ -49,12 +55,12 @@ include_directories(
 # Source files
 set(SOURCES
     main.cpp
+    imguisetup.cpp
+    imguisetup.h
     utils/init.cpp
     hook/hooks.cpp
     hook/input.cpp
-    imguisetup.cpp
-    imguisetup.h
-    menu.cpp
+    menu/menu.cpp
 )
 
 # ImGui sources
@@ -77,7 +83,12 @@ set(KITTY_SOURCES
     libs/KittyMemory/MemoryBackup.cpp
     libs/KittyMemory/MemoryPatch.cpp
 )
+# Custom flag Keystone
+option(USE_KEYSTONE "Use Keystone Engine in KittyMemory" OFF)
 
+if(NOT USE_KEYSTONE)
+    add_definitions(-DkNO_KEYSTONE)
+endif()
 # Add shared library for Android
 add_library(${PROJECT_NAME} SHARED
     ${SOURCES}

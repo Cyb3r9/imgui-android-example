@@ -1,8 +1,8 @@
 #include "hooks.h"
-#include "../imguisetup.h"
-#include "../utils/init.h"
-#include "../utils/log.h"
-#include "../utils/time.h"
+#include "imguisetup.h"
+#include "utils/init.h"
+#include "utils/log.h"
+#include "utils/times.hpp"
 #include "input.h"
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
