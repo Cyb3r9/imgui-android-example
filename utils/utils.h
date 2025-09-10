@@ -1,7 +1,6 @@
 #include <link.h>
 #include <string_view>
 
-// Mengecek apakah libEGL.so sudah terload di proses
 bool IsLibraryLoaded(const char *libName)
 {
     FILE *maps = fopen("/proc/self/maps", "r");

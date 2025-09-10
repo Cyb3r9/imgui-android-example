@@ -4,10 +4,8 @@
 #include <dobby.h>
 #include <pthread.h>
 #include <unistd.h>
-// #include <BNM/Loading.hpp>
 #include <KittyInclude.hpp>
 
-// Thread function
 void *pussy_thread(void *)
 {
     LOGI("Fuby thread started");
