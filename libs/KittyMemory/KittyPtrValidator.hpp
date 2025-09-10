@@ -1,10 +1,10 @@
 #pragma once
 
+#include <inttypes.h>
 #include <algorithm>
 #include <cstdint>
 #include <fcntl.h>
 #include <string>
-#include <string_view>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <vector>
@@ -24,7 +24,9 @@ private:
         bool executable;
 
         RegionInfo(uintptr_t s, uintptr_t e, bool r, bool w, bool x)
-            : start(s), end(e), readable(r), writable(w), executable(x) {}
+            : start(s), end(e), readable(r), writable(w), executable(x)
+        {
+        }
 
         inline bool canMergeWith(const RegionInfo &other) const
         {
@@ -33,7 +35,7 @@ private:
         }
     };
 
-    std::vector<RegionInfo> regions_;
+    std::vector<RegionInfo> cachedRegions_;
     const mach_port_t task_ = mach_task_self();
     const size_t page_size_ = sysconf(_SC_PAGESIZE);
     bool use_cache_ = true;
@@ -42,64 +44,95 @@ private:
     bool _findRegion(uintptr_t addr, RegionInfo *region);
 
 public:
-    KittyPtrValidator() : task_(mach_task_self()), page_size_(sysconf(_SC_PAGESIZE)), use_cache_(true), last_region_index_(0) {}
+    KittyPtrValidator()
+        : task_(mach_task_self()), page_size_(sysconf(_SC_PAGESIZE)), use_cache_(false),
+          last_region_index_(0)
+    {
+    }
 
-    KittyPtrValidator(mach_port_t task, bool use_cache) : task_(task), page_size_(sysconf(_SC_PAGESIZE)), use_cache_(use_cache), last_region_index_(0) {}
+    KittyPtrValidator(mach_port_t task, bool use_cache)
+        : task_(task), page_size_(sysconf(_SC_PAGESIZE)), use_cache_(use_cache),
+          last_region_index_(0)
+    {
+        if (use_cache_)
+            refreshRegionCache();
+    }
 
     inline void setUseCache(bool use_cache)
     {
         use_cache_ = use_cache;
         if (!use_cache_)
         {
-            regions_.clear();
+            cachedRegions_.clear();
             last_region_index_ = 0;
+        }
+        else
+        {
+            refreshRegionCache();
         }
     }
 
-    inline bool isPtrReadable(uintptr_t ptr)
+    inline bool isPtrReadable(uintptr_t ptr, size_t len = sizeof(void *))
     {
-        if (ptr == 0) return false;
+        if (ptr == 0)
+            return false;
         RegionInfo region(0, 0, false, false, false);
-        return _findRegion(ptr, &region) && region.readable;
+        return _findRegion(ptr, &region) && region.readable && (ptr + len) <= region.end;
     }
 
-    inline bool isPtrWritable(uintptr_t ptr)
+    inline bool isPtrWritable(uintptr_t ptr, size_t len = sizeof(void *))
     {
-        if (ptr == 0) return false;
+        if (ptr == 0)
+            return false;
         RegionInfo region(0, 0, false, false, false);
-        return _findRegion(ptr, &region) && region.writable;
+        return _findRegion(ptr, &region) && region.writable && (ptr + len) <= region.end;
     }
 
-    inline bool isPtrExecutable(uintptr_t ptr)
+    inline bool isPtrExecutable(uintptr_t ptr, size_t len = sizeof(void *))
     {
-        if (ptr == 0) return false;
+        if (ptr == 0)
+            return false;
         RegionInfo region(0, 0, false, false, false);
-        return _findRegion(ptr, &region) && region.executable;
+        return _findRegion(ptr, &region) && region.executable &&
+               (ptr + len) <= region.end;
     }
 
     inline bool isPtrInAddressSpace(uintptr_t ptr)
     {
-        if (ptr == 0) return false;
+        if (ptr == 0)
+            return false;
         RegionInfo region(0, 0, false, false, false);
         return _findRegion(ptr, &region);
     }
 
-    inline bool isPtrReadable(const void *ptr) { return ptr && isPtrReadable(uintptr_t(ptr)); }
-    inline bool isPtrWritable(const void *ptr) { return ptr && isPtrWritable(uintptr_t(ptr)); }
-    inline bool isPtrExecutable(const void *ptr) { return ptr && isPtrExecutable(uintptr_t(ptr)); }
-    inline bool isPtrInAddressSpace(const void *ptr) { return ptr && isPtrInAddressSpace(uintptr_t(ptr)); }
+    inline bool isPtrReadable(const void *ptr, size_t len = sizeof(void *))
+    {
+        return ptr && isPtrReadable(uintptr_t(ptr), len);
+    }
+    inline bool isPtrWritable(const void *ptr, size_t len = sizeof(void *))
+    {
+        return ptr && isPtrWritable(uintptr_t(ptr), len);
+    }
+    inline bool isPtrExecutable(const void *ptr, size_t len = sizeof(void *))
+    {
+        return ptr && isPtrExecutable(uintptr_t(ptr), len);
+    }
+    inline bool isPtrInAddressSpace(const void *ptr)
+    {
+        return ptr && isPtrInAddressSpace(uintptr_t(ptr));
+    }
 
     inline void clearCache()
     {
-        regions_.clear();
+        cachedRegions_.clear();
         last_region_index_ = 0;
     }
 
     void refreshRegionCache();
 
-    inline std::vector<RegionInfo> regions() const
+    inline std::vector<RegionInfo> cachedRegions() const
     {
-        return regions_;
+        return cachedRegions_;
     }
 };
 
@@ -117,7 +150,9 @@ private:
         bool executable;
 
         RegionInfo(uintptr_t s, uintptr_t e, bool r, bool w, bool x)
-            : start(s), end(e), readable(r), writable(w), executable(x) {}
+            : start(s), end(e), readable(r), writable(w), executable(x)
+        {
+        }
 
         inline bool canMergeWith(const RegionInfo &other) const
         {
@@ -126,7 +161,7 @@ private:
         }
     };
 
-    std::vector<RegionInfo> regions_;
+    std::vector<RegionInfo> cachedRegions_;
     pid_t pid_ = getpid();
     const size_t page_size_ = sysconf(_SC_PAGESIZE);
     bool use_cache_ = true;
@@ -141,71 +176,107 @@ private:
     bool _findRegion(uintptr_t addr, RegionInfo *region);
 
 public:
-    KittyPtrValidator() : pid_(getpid()), page_size_(sysconf(_SC_PAGESIZE)), use_cache_(true), last_region_index_(0) {}
+    KittyPtrValidator()
+        : pid_(getpid()), page_size_(sysconf(_SC_PAGESIZE)), use_cache_(false),
+          last_region_index_(0)
+    {
+    }
 
-    KittyPtrValidator(pid_t pid, bool use_cache) : pid_(pid), page_size_(sysconf(_SC_PAGESIZE)), use_cache_(use_cache), last_region_index_(0) {}
+    KittyPtrValidator(pid_t pid, bool use_cache)
+        : pid_(pid), page_size_(sysconf(_SC_PAGESIZE)), use_cache_(use_cache),
+          last_region_index_(0)
+    {
+        if (use_cache_)
+            refreshRegionCache();
+    }
 
     inline void setUseCache(bool use_cache)
     {
         use_cache_ = use_cache;
         if (!use_cache_)
         {
-            regions_.clear();
+            cachedRegions_.clear();
             last_region_index_ = 0;
+        }
+        else
+        {
+            refreshRegionCache();
         }
     }
 
     inline void setPID(pid_t pid)
     {
-        regions_.clear();
+        cachedRegions_.clear();
         last_region_index_ = 0;
         pid_ = pid;
+
+        if (use_cache_)
+        {
+            refreshRegionCache();
+        }
     }
 
-    inline bool isPtrReadable(uintptr_t ptr)
+    inline bool isPtrReadable(uintptr_t ptr, size_t len = sizeof(void *))
     {
-        if (ptr == 0) return false;
+        if (ptr == 0)
+            return false;
         RegionInfo region(0, 0, false, false, false);
-        return _findRegion(ptr, &region) && region.readable;
+        return _findRegion(ptr, &region) && region.readable && (ptr + len) <= region.end;
     }
 
-    inline bool isPtrWritable(uintptr_t ptr)
+    inline bool isPtrWritable(uintptr_t ptr, size_t len = sizeof(void *))
     {
-        if (ptr == 0) return false;
+        if (ptr == 0)
+            return false;
         RegionInfo region(0, 0, false, false, false);
-        return _findRegion(ptr, &region) && region.writable;
+        return _findRegion(ptr, &region) && region.writable && (ptr + len) <= region.end;
     }
 
-    inline bool isPtrExecutable(uintptr_t ptr)
+    inline bool isPtrExecutable(uintptr_t ptr, size_t len = sizeof(void *))
     {
-        if (ptr == 0) return false;
+        if (ptr == 0)
+            return false;
         RegionInfo region(0, 0, false, false, false);
-        return _findRegion(ptr, &region) && region.executable;
+        return _findRegion(ptr, &region) && region.executable &&
+               (ptr + len) <= region.end;
     }
 
     inline bool isPtrInAddressSpace(uintptr_t ptr)
     {
-        if (ptr == 0) return false;
+        if (ptr == 0)
+            return false;
         RegionInfo region(0, 0, false, false, false);
         return _findRegion(ptr, &region);
     }
 
-    inline bool isPtrReadable(const void *ptr) { return ptr && isPtrReadable(uintptr_t(ptr)); }
-    inline bool isPtrWritable(const void *ptr) { return ptr && isPtrWritable(uintptr_t(ptr)); }
-    inline bool isPtrExecutable(const void *ptr) { return ptr && isPtrExecutable(uintptr_t(ptr)); }
-    inline bool isPtrInAddressSpace(const void *ptr) { return ptr && isPtrInAddressSpace(uintptr_t(ptr)); }
+    inline bool isPtrReadable(const void *ptr, size_t len = sizeof(void *))
+    {
+        return ptr && isPtrReadable(uintptr_t(ptr), len);
+    }
+    inline bool isPtrWritable(const void *ptr, size_t len = sizeof(void *))
+    {
+        return ptr && isPtrWritable(uintptr_t(ptr), len);
+    }
+    inline bool isPtrExecutable(const void *ptr, size_t len = sizeof(void *))
+    {
+        return ptr && isPtrExecutable(uintptr_t(ptr), len);
+    }
+    inline bool isPtrInAddressSpace(const void *ptr)
+    {
+        return ptr && isPtrInAddressSpace(uintptr_t(ptr));
+    }
 
     inline void clearCache()
     {
-        regions_.clear();
+        cachedRegions_.clear();
         last_region_index_ = 0;
     }
 
     void refreshRegionCache();
 
-    inline std::vector<RegionInfo> regions() const
+    inline std::vector<RegionInfo> cachedRegions() const
     {
-        return regions_;
+        return cachedRegions_;
     }
 };
 

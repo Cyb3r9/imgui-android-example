@@ -75,7 +75,8 @@ set(IMGUI_SOURCES
 )
 # KittyMemory 
 set(KITTY_SOURCES
-    libs/KittyMemory/KittyArm64.cpp
+    libs/KittyMemory/KittyAsm.cpp
+    libs/KittyMemory/KittyIOFile.cpp
     libs/KittyMemory/KittyMemory.cpp
     libs/KittyMemory/KittyPtrValidator.cpp
     libs/KittyMemory/KittyScanner.cpp
@@ -104,10 +105,10 @@ add_library(${PROJECT_NAME} SHARED
 # Link libraries
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
-    # ${CMAKE_SOURCE_DIR}/libs/arm64-v8a/curl/lib/libcurl.a
+    ${CMAKE_SOURCE_DIR}/libs/arm64-v8a/curl/lib/libcurl.a
     ${CMAKE_SOURCE_DIR}/libs/arm64-v8a/dobby/lib/libdobby.a
-    # ${CMAKE_SOURCE_DIR}/libs/arm64-v8a/openssl/lib/libssl.a
-    # ${CMAKE_SOURCE_DIR}/libs/arm64-v8a/openssl/lib/libcrypto.a
+    ${CMAKE_SOURCE_DIR}/libs/arm64-v8a/openssl/lib/libssl.a
+    ${CMAKE_SOURCE_DIR}/libs/arm64-v8a/openssl/lib/libcrypto.a
     ${CMAKE_SOURCE_DIR}/libs/KittyMemory/Deps/Keystone/libs-android/${CMAKE_ANDROID_ARCH_ABI}/libkeystone.a
     atomic
     # BNM

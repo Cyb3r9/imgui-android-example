@@ -33,7 +33,6 @@ void InitImGui(ANativeWindow *window, EGLDisplay display, EGLSurface surface)
         return;
     }
 
-    // Just to be sure: make sure current context is active
     if (eglMakeCurrent(display, surface, surface, context) != EGL_TRUE)
     {
         LOGE("InitImGui failed: eglMakeCurrent failed, error: 0x%04x", eglGetError());
@@ -107,7 +106,6 @@ void RenderImGui()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplAndroid_NewFrame();
 
-    // Update framebuffer size dan scale secara real-time
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
     int fb_width = viewport[2];
@@ -138,8 +136,6 @@ void ShutdownImGui()
     ImGui::DestroyContext();
 
     g_ImGuiInitialized.store(false);
-
-    // ⏱ Simpan waktu saat shutdown
     g_LastShutdownTime = std::chrono::steady_clock::now();
 
     LOGI("ImGui shutdown complete");

@@ -11,12 +11,11 @@
 #include <dobby.h>
 #include <xdl.h>
 
-// Pointer asli
+
 static EGLBoolean (*orig_eglSwapBuffers)(EGLDisplay dpy, EGLSurface surface) = nullptr;
 static EGLSurface (*orig_eglCreateWindowSurface)(EGLDisplay dpy, EGLConfig config, ANativeWindow *window,
                                                  const EGLint *attrib_list) = nullptr;
 
-// Global state
 static ANativeWindow *g_window = nullptr;
 static EGLDisplay g_display = nullptr;
 static EGLSurface g_surface = nullptr;
@@ -26,7 +25,7 @@ void TryInitImGuiSafe()
     if (IsImGuiInitialized())
         return;
 
-    // Pastikan semua resource ada
+
     if (!g_window || !g_display || !g_surface)
     {
         LOGW("TryInitImGuiSafe: Missing window/display/surface");
@@ -51,7 +50,7 @@ void TryInitImGuiSafe()
     InitImGui(g_window, g_display, g_surface);
 }
 
-// ✅ eglSwapBuffers
+
 EGLBoolean hooked_eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
 {
     if (!orig_eglSwapBuffers)
@@ -62,9 +61,9 @@ EGLBoolean hooked_eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
 
     g_display = dpy;
     g_surface = surface;
-    // ✅ Panggil init jika belum
+    
     TryInitImGuiSafe();
-    // 🎮 Render UI
+    
     if (IsImGuiInitialized())
     {
         RenderImGui();
@@ -73,7 +72,7 @@ EGLBoolean hooked_eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
     return orig_eglSwapBuffers(dpy, surface);
 }
 
-// ✅ eglCreateWindowSurface
+
 EGLSurface hooked_eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, ANativeWindow *window,
                                          const EGLint *attrib_list)
 {
@@ -86,14 +85,14 @@ EGLSurface hooked_eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, ANati
     int h = ANativeWindow_getHeight(window);
     LOGI("Screen resolution: %dx%d", w, h);
 
-    g_window = window; // Cache for ImGui_ImplAndroid
+    g_window = window;
     g_display = dpy;
     g_surface = surface;
 
     return surface;
 }
 
-// Helper untuk resolve symbol
+
 void *ResolveSymbol(const char *libName, const char *symbolName)
 {
     void *handle = dlopen(libName, RTLD_LAZY);
@@ -115,7 +114,6 @@ void *ResolveSymbol(const char *libName, const char *symbolName)
         LOGW("dlopen failed for %s, trying xDL...", libName);
     }
 
-    // Fallback ke xDL
     void *xdlHandle = xdl_open(libName, XDL_DEFAULT);
     if (!xdlHandle)
     {
